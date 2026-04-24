@@ -1,0 +1,18 @@
+{
+  "name": "com.cupkekgames.core",
+  "displayName": "CupkekGames Core",
+  "version": "0.1.0",
+  "author": {
+    "name": "CupkekGames",
+    "url": "https://www.docs.cupkek.games"
+  },
+  "unity": "6000.0",
+  "documentationUrl": "https://docs.cupkek.games/",
+  "description": "Shared foundation utilities used by CupkekGames Luna UI and CupkekGames Systems. Singleton, Fadeable, Pool, KeyValueDatabase, Input device/icon manager, editor helpers.",
+  "keywords": [
+    "Utility",
+    "Foundation",
+    "CupkekGames"
+  ],
+  "dependencies": {}
+}
