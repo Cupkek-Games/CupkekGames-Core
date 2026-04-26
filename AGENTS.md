@@ -2,9 +2,9 @@
 
 ## Package Overview
 
-**CupkekGames Core** (`com.cupkekgames.core`) is the shared foundation layer for CupkekGames packages (LunaUI and CupkekGames Systems). Pure utility code — no UI, no game systems, no external Unity package dependencies.
+**CupkekGames Core** (`com.cupkekgames.core`) is the shared foundation layer for all CupkekGames packages (LunaUI + 7 domain packages: data, rpgstats, inventory, addressables, sequencer, settings, ink). Pure utility code — no UI, no game systems, no external Unity package dependencies.
 
-Both `com.cupkekgames.luna` and `com.cupkekgames.systems` depend on this. This package depends on nothing above Unity's core modules.
+Every other CupkekGames package depends on this; this package depends on nothing above Unity's core modules.
 
 ## Critical: Do not hand-edit Unity serialized assets or `.meta` files
 
@@ -50,14 +50,18 @@ com.cupkekgames.core/
 
 ## What NOT to add here
 
-- UI code → goes in `com.cupkekgames.luna`
-- Game systems (save, inventory, dialogue, etc.) → goes in `com.cupkekgames.systems`
-- Anything that depends on `UnityEngine.UIElements` beyond bare-minimum utility → Luna
-- Anything game-specific (inventory items, stats, dialogue) → Systems
+- UI code → `com.cupkekgames.luna`
+- Persistence / IData / save → `com.cupkekgames.data`
+- Inventory / stats → `com.cupkekgames.inventory`, `com.cupkekgames.rpgstats`
+- Asset loading → `com.cupkekgames.addressables`
+- Scene / boot flow → `com.cupkekgames.sequencer`
+- Settings panel → `com.cupkekgames.settings`
+- Ink narrative → `com.cupkekgames.ink`
+- Anything that depends on `UnityEngine.UIElements` → Luna or a Luna-dep package, never core
 
 ## Related packages
 
 - `com.cupkekgames.luna` — UI library that depends on this
-- `com.cupkekgames.systems` — game systems that depend on both this and Luna
+- `com.cupkekgames.data`, `rpgstats`, `inventory`, `addressables`, `sequencer`, `settings`, `ink` — domain packages depending on this (and most also on Luna)
 
-Multi-repo dev: embed all three repos in the consumer project's `Packages/` folder. See the Luna package's `Documentation/V2_STEP1_5.md` for full architecture rationale.
+Multi-repo dev: embed all 9 packages in the consumer project's `Packages/` folder. See Luna's `Documentation/ARCHITECTURE.md` for the canonical layout.

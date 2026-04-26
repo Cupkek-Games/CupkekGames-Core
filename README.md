@@ -1,6 +1,6 @@
 # CupkekGames Core
 
-Shared foundation utilities used by **LunaUI** (`com.cupkekgames.luna`) and **CupkekGames Systems** (`com.cupkekgames.systems`). Not intended for direct consumer use — you get it transitively when you install Luna or Systems.
+Shared foundation utilities used by all CupkekGames packages (LunaUI + the domain packages: data, rpgstats, inventory, addressables, sequencer, settings, ink). Not intended for direct consumer use — you get it transitively when you install Luna or any of its sibling packages.
 
 ## What's inside
 
@@ -21,8 +21,16 @@ Shared foundation utilities used by **LunaUI** (`com.cupkekgames.luna`) and **Cu
 com.cupkekgames.core  ← this package (no deps)
        ↑
        ├── com.cupkekgames.luna
-       └── com.cupkekgames.systems → depends on luna
+       ├── com.cupkekgames.data
+       ├── com.cupkekgames.rpgstats
+       ├── com.cupkekgames.inventory
+       ├── com.cupkekgames.addressables
+       ├── com.cupkekgames.sequencer
+       ├── com.cupkekgames.settings
+       └── com.cupkekgames.ink
 ```
+
+See Luna's [Documentation/ARCHITECTURE.md](../com.cupkekgames.luna/Documentation/ARCHITECTURE.md) for the full dep graph.
 
 ## Installation
 
@@ -31,4 +39,4 @@ Embedded package — clone the repo into your project's `Packages/` folder along
 ## Related packages
 
 - `com.cupkekgames.luna` — pure UI library (depends on this)
-- `com.cupkekgames.systems` — game systems (depends on this + luna)
+- `com.cupkekgames.data`, `rpgstats`, `inventory`, `addressables`, `sequencer`, `settings`, `ink` — domain packages built on this and Luna
