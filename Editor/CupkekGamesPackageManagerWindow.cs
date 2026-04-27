@@ -39,7 +39,7 @@ namespace CupkekGames.Core.Editor
                 CupkekGamesPackageInstaller.GetInstalledPackages(installed =>
                 {
                     int missing = 0;
-                    foreach (CupkekGamesPackageRegistry.Entry e in CupkekGamesPackageRegistry.GameFullDependencies)
+                    foreach (CupkekGamesPackageRegistry.Entry e in CupkekGamesPackageRegistry.GetByTag(PackageTags.GameFull))
                     {
                         if (installed == null || !installed.ContainsKey(e.PackageId))
                         {
@@ -156,7 +156,7 @@ namespace CupkekGames.Core.Editor
         {
             _rowsContainer.Clear();
 
-            CupkekGamesPackageRegistry.Entry[] entries = CupkekGamesPackageRegistry.GameFullDependencies;
+            CupkekGamesPackageRegistry.Entry[] entries = CupkekGamesPackageRegistry.GetByTag(PackageTags.GameFull);
             foreach (CupkekGamesPackageRegistry.Entry entry in entries)
             {
                 _rowsContainer.Add(BuildRow(entry));
@@ -213,7 +213,7 @@ namespace CupkekGames.Core.Editor
 
         private void UpdateToolbar()
         {
-            CupkekGamesPackageRegistry.Entry[] entries = CupkekGamesPackageRegistry.GameFullDependencies;
+            CupkekGamesPackageRegistry.Entry[] entries = CupkekGamesPackageRegistry.GetByTag(PackageTags.GameFull);
             int total = entries.Length;
             int installed = entries.Count(e =>
                 _installedPackages != null && _installedPackages.ContainsKey(e.PackageId));
@@ -263,7 +263,7 @@ namespace CupkekGames.Core.Editor
 
         private void OnInstallGameFullPackages()
         {
-            CupkekGamesPackageRegistry.Entry[] entries = CupkekGamesPackageRegistry.GameFullDependencies;
+            CupkekGamesPackageRegistry.Entry[] entries = CupkekGamesPackageRegistry.GetByTag(PackageTags.GameFull);
             List<string> urls = entries
                 .Where(e => _installedPackages == null || !_installedPackages.ContainsKey(e.PackageId))
                 .Select(e => e.GitUrl)
