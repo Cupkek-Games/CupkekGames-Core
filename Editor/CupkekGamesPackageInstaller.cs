@@ -1,16 +1,25 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
+using UnityEngine;
 
 namespace CupkekGames.Core.Editor
 {
     public static class CupkekGamesPackageInstaller
     {
         private const string LastErrorKey = "CupkekGames_PackageInstallLastError";
+
+        // CupkekGames UPM scoped registry. Hosted as a dynamic Next.js route
+        // handler at luna-docs-next/src/app/upm/[package]/route.ts, backed by
+        // each sibling repo's GitHub Releases.
+        private const string RegistryName = "CupkekGames";
+        private const string RegistryUrl = "https://www.docs.cupkek.games/upm";
+        private const string RegistryScope = "com.cupkekgames";
 
         private static ListRequest _listRequest;
         private static AddRequest _addRequest;
@@ -60,11 +69,19 @@ namespace CupkekGames.Core.Editor
             cb?.Invoke(dict);
         }
 
-        public static void InstallByGitUrl(string gitUrl, Action<bool, string> onCompleted)
+        public static void InstallByPackageId(string packageId, Action<bool, string> onCompleted)
         {
             if (IsAddInFlight) return;
+            if (string.IsNullOrEmpty(packageId))
+            {
+                onCompleted?.Invoke(false, "Empty package id.");
+                return;
+            }
+
+            EnsureScopedRegistry();
+
             LastError = string.Empty;
-            _addRequest = Client.Add(gitUrl);
+            _addRequest = Client.Add(packageId);
             _addCallback = onCompleted;
             EditorApplication.update += PumpAddRequest;
         }
@@ -87,20 +104,23 @@ namespace CupkekGames.Core.Editor
             cb?.Invoke(ok, msg);
         }
 
-        // Bulk-install via Client.AddAndRemove — single manifest write + single domain reload.
-        // Available in Unity 2021.2+ (we require 6000.0).
-        public static void InstallAllByGitUrls(IEnumerable<string> gitUrls, Action<bool, string> onCompleted = null)
+        // Bulk-install via Client.AddAndRemove — single manifest write + single
+        // domain reload, and Unity resolves the whole graph atomically so all
+        // transitive deps within the com.cupkekgames scope land together.
+        public static void InstallByPackageIds(IEnumerable<string> packageIds, Action<bool, string> onCompleted = null)
         {
             if (IsAddInFlight) return;
 
-            string[] toAdd = gitUrls
-                .Where(u => !string.IsNullOrEmpty(u))
+            string[] toAdd = packageIds
+                .Where(id => !string.IsNullOrEmpty(id))
                 .ToArray();
             if (toAdd.Length == 0)
             {
                 onCompleted?.Invoke(true, "No packages to install.");
                 return;
             }
+
+            EnsureScopedRegistry();
 
             LastError = string.Empty;
             _addAndRemoveRequest = Client.AddAndRemove(packagesToAdd: toAdd, packagesToRemove: null);
@@ -124,6 +144,95 @@ namespace CupkekGames.Core.Editor
             _addAndRemoveRequest = null;
             _addAndRemoveCallback = null;
             cb?.Invoke(ok, msg);
+        }
+
+        /// <summary>
+        /// Ensures the CupkekGames scoped registry block is present in the
+        /// project's Packages/manifest.json. Idempotent. Safe to call before
+        /// every Client.Add / Client.AddAndRemove.
+        /// </summary>
+        /// <remarks>
+        /// String-based injection rather than full JSON parse: manifest.json is
+        /// Unity-managed and predictable in shape (no comments, no trailing
+        /// commas). This avoids adding a Newtonsoft.Json dep on a package whose
+        /// pitch is "no external deps".
+        /// </remarks>
+        public static void EnsureScopedRegistry()
+        {
+            string manifestPath = Path.GetFullPath(
+                Path.Combine(Application.dataPath, "..", "Packages", "manifest.json"));
+            if (!File.Exists(manifestPath))
+            {
+                Debug.LogWarning($"[CupkekGames] Packages/manifest.json not found at {manifestPath}; skipping scoped-registry bootstrap.");
+                return;
+            }
+
+            string content = File.ReadAllText(manifestPath);
+
+            // Already present? Match on the exact URL — robust against
+            // user reformatting the JSON or having a different `name`.
+            if (content.Contains($"\"{RegistryUrl}\""))
+            {
+                return;
+            }
+
+            string newEntry =
+                "    {\n" +
+                $"      \"name\": \"{RegistryName}\",\n" +
+                $"      \"url\": \"{RegistryUrl}\",\n" +
+                $"      \"scopes\": [\n" +
+                $"        \"{RegistryScope}\"\n" +
+                $"      ]\n" +
+                "    }";
+
+            string updated;
+            int scopedRegistriesIdx = content.IndexOf("\"scopedRegistries\"");
+            if (scopedRegistriesIdx >= 0)
+            {
+                // Append our entry to the existing array. Find the array's `[`
+                // and inject after it.
+                int arrayStart = content.IndexOf('[', scopedRegistriesIdx);
+                if (arrayStart < 0)
+                {
+                    Debug.LogError("[CupkekGames] manifest.json has scopedRegistries key but no array — skipping.");
+                    return;
+                }
+
+                // Determine if the array is empty (next non-ws char is `]`).
+                int probe = arrayStart + 1;
+                while (probe < content.Length && char.IsWhiteSpace(content[probe])) probe++;
+                bool empty = probe < content.Length && content[probe] == ']';
+
+                string insertion = empty
+                    ? "\n" + newEntry + "\n  "
+                    : "\n" + newEntry + ",";
+                updated = content.Insert(arrayStart + 1, insertion);
+            }
+            else
+            {
+                // Inject a fresh scopedRegistries key at the start of the root
+                // object (right after the opening `{`). Trailing comma keeps
+                // following keys (e.g. `dependencies`) syntactically valid.
+                int rootBrace = content.IndexOf('{');
+                if (rootBrace < 0)
+                {
+                    Debug.LogError("[CupkekGames] manifest.json has no opening `{` — skipping.");
+                    return;
+                }
+
+                string insertion =
+                    "\n  \"scopedRegistries\": [\n" +
+                    newEntry + "\n" +
+                    "  ],";
+                updated = content.Insert(rootBrace + 1, insertion);
+            }
+
+            File.WriteAllText(manifestPath, updated);
+            Debug.Log($"[CupkekGames] Added scoped registry to {manifestPath}.");
+
+            // Force Unity to re-read manifest.json before the next Client.Add /
+            // Client.AddAndRemove call resolves dependencies.
+            Client.Resolve();
         }
     }
 }

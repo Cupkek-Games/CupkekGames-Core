@@ -85,8 +85,9 @@ namespace CupkekGames.Core.Editor
             header.Add(title);
 
             Label subtitle = new Label(
-                "Sibling CupkekGames packages installed via Git URL. Required for the Luna GameFull sample. " +
-                "core + input + luna come pre-bundled with Luna; the entries below complete the ecosystem.");
+                "Sibling CupkekGames packages installed via the CupkekGames UPM scoped registry " +
+                "(www.docs.cupkek.games/upm). Required for the Luna GameFull sample. " +
+                "Installing here writes the registry block to your Packages/manifest.json automatically.");
             subtitle.AddToClassList("pm-header-subtitle");
             header.Add(subtitle);
         }
@@ -214,11 +215,11 @@ namespace CupkekGames.Core.Editor
             }
             else
             {
-                string gitUrl = entry.GitUrl;
-                Button install = new Button(() => OnInstallSingle(gitUrl));
+                string installId = entry.PackageId;
+                Button install = new Button(() => OnInstallSingle(installId));
                 install.text = "Install";
                 install.AddToClassList("pm-row-install-btn");
-                install.tooltip = gitUrl;
+                install.tooltip = installId;
                 row.Add(install);
             }
 
@@ -263,13 +264,13 @@ namespace CupkekGames.Core.Editor
             _errorLabel.style.display = DisplayStyle.Flex;
         }
 
-        private void OnInstallSingle(string gitUrl)
+        private void OnInstallSingle(string packageId)
         {
-            CupkekGamesPackageInstaller.InstallByGitUrl(gitUrl, (ok, msg) =>
+            CupkekGamesPackageInstaller.InstallByPackageId(packageId, (ok, msg) =>
             {
                 if (!ok)
                 {
-                    Debug.LogError($"[CupkekGames] Failed to install {gitUrl}: {msg}");
+                    Debug.LogError($"[CupkekGames] Failed to install {packageId}: {msg}");
                 }
                 Refresh();
             });
@@ -278,13 +279,13 @@ namespace CupkekGames.Core.Editor
         private void OnInstallGameFullPackages()
         {
             CupkekGamesPackageRegistry.Entry[] entries = CupkekGamesPackageRegistry.GetByTag(PackageTags.GameFull);
-            List<string> urls = entries
+            List<string> ids = entries
                 .Where(e => _installedPackages == null || !_installedPackages.ContainsKey(e.PackageId))
-                .Select(e => e.GitUrl)
+                .Select(e => e.PackageId)
                 .ToList();
-            if (urls.Count == 0) return;
+            if (ids.Count == 0) return;
 
-            CupkekGamesPackageInstaller.InstallAllByGitUrls(urls, (ok, msg) =>
+            CupkekGamesPackageInstaller.InstallByPackageIds(ids, (ok, msg) =>
             {
                 if (!ok)
                 {
@@ -292,8 +293,9 @@ namespace CupkekGames.Core.Editor
                 }
                 Refresh();
             });
-            // Single Client.AddAndRemove call → one manifest write, one domain reload after all packages resolve.
-            // CreateGUI re-fires post-reload; the Refresh callback above is the same-session fallback if reload doesn't happen.
+            // Single Client.AddAndRemove call → one manifest write, one domain
+            // reload, all transitive deps within com.cupkekgames scope resolve
+            // atomically via the scoped registry.
         }
     }
 }

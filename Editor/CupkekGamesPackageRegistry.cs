@@ -16,14 +16,12 @@ namespace CupkekGames.Core.Editor
         {
             public readonly string PackageId;
             public readonly string DisplayName;
-            public readonly string GitUrl;
             public readonly string[] Tags;
 
-            public Entry(string packageId, string displayName, string gitUrl, params string[] tags)
+            public Entry(string packageId, string displayName, params string[] tags)
             {
                 PackageId = packageId;
                 DisplayName = displayName;
-                GitUrl = gitUrl;
                 Tags = tags ?? System.Array.Empty<string>();
             }
 
@@ -36,22 +34,24 @@ namespace CupkekGames.Core.Editor
             }
         }
 
-        // core + input are omitted — Luna's package.json > dependencies installs them transitively.
-        // Append "#vX.Y.Z" to a Git URL to pin a specific release (currently HEAD of main).
-        // Order matters: leaf deps first, packages that depend on them after, so Unity resolves cleanly.
+        // Distributed via the CupkekGames UPM scoped registry at
+        // https://www.docs.cupkek.games/upm. Tarballs in each repo's GitHub
+        // Releases. See Documentation/CREATING_A_PACKAGE.md for the release flow.
+        // Order matters: leaf deps first, packages that depend on them after.
         public static readonly Entry[] Entries = new[]
         {
-            new Entry("com.cupkekgames.servicelocator",  "ServiceLocator",  "https://github.com/Cupkek-Games/CupkekGames-ServiceLocator.git",  PackageTags.GameFull),
-            new Entry("com.cupkekgames.data",            "Data",            "https://github.com/Cupkek-Games/CupkekGames-Data.git",            PackageTags.GameFull),
-            new Entry("com.cupkekgames.gamesave",        "GameSave",        "https://github.com/Cupkek-Games/CupkekGames-GameSave.git",        PackageTags.GameFull),
-            new Entry("com.cupkekgames.newtonsoft",      "Newtonsoft",      "https://github.com/Cupkek-Games/CupkekGames-Newtonsoft.git",      PackageTags.GameFull),
-            new Entry("com.cupkekgames.rpgstats",        "RPGStats",        "https://github.com/Cupkek-Games/CupkekGames-RPGStats.git",        PackageTags.GameFull),
-            new Entry("com.cupkekgames.inventory",       "Inventory",       "https://github.com/Cupkek-Games/CupkekGames-Inventory.git",       PackageTags.GameFull),
-            new Entry("com.cupkekgames.addressables",    "Addressables",    "https://github.com/Cupkek-Games/CupkekGames-Addressables.git",    PackageTags.GameFull),
-            new Entry("com.cupkekgames.scenemanagement", "SceneManagement", "https://github.com/Cupkek-Games/CupkekGames-SceneManagement.git", PackageTags.GameFull),
-            new Entry("com.cupkekgames.sequencer",       "Sequencer",       "https://github.com/Cupkek-Games/CupkekGames-Sequencer.git",       PackageTags.GameFull),
-            new Entry("com.cupkekgames.settings",        "Settings",        "https://github.com/Cupkek-Games/CupkekGames-Settings.git",        PackageTags.GameFull),
-            new Entry("com.cupkekgames.ink",             "Ink",             "https://github.com/Cupkek-Games/CupkekGames-Ink.git",             PackageTags.GameFull),
+            new Entry("com.cupkekgames.core",            "Core",            PackageTags.GameFull),
+            new Entry("com.cupkekgames.servicelocator",  "ServiceLocator",  PackageTags.GameFull),
+            new Entry("com.cupkekgames.data",            "Data",            PackageTags.GameFull),
+            new Entry("com.cupkekgames.gamesave",        "GameSave",        PackageTags.GameFull),
+            new Entry("com.cupkekgames.newtonsoft",      "Newtonsoft",      PackageTags.GameFull),
+            new Entry("com.cupkekgames.rpgstats",        "RPGStats",        PackageTags.GameFull),
+            new Entry("com.cupkekgames.inventory",       "Inventory",       PackageTags.GameFull),
+            new Entry("com.cupkekgames.addressables",    "Addressables",    PackageTags.GameFull),
+            new Entry("com.cupkekgames.scenemanagement", "SceneManagement", PackageTags.GameFull),
+            new Entry("com.cupkekgames.sequencer",       "Sequencer",       PackageTags.GameFull),
+            new Entry("com.cupkekgames.settings",        "Settings",        PackageTags.GameFull),
+            new Entry("com.cupkekgames.ink",             "Ink",             PackageTags.GameFull),
         };
 
         /// <summary>Entries with the given tag, in registration order.</summary>
