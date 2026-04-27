@@ -1,0 +1,63 @@
+:root {
+    /* Base surfaces */
+    --editor-bg-900: rgb(34, 37, 42);
+    --editor-bg-850: rgb(37, 40, 46);
+    --editor-bg-800: rgb(41, 44, 50);
+    --editor-bg-750: rgb(46, 49, 56);
+
+    /* Overlay surfaces */
+    --editor-surface-weak: rgba(255, 255, 255, 0.035);
+    --editor-surface-medium: rgba(255, 255, 255, 0.06);
+    --editor-surface-strong: rgba(255, 255, 255, 0.09);
+
+    /* Borders */
+    --editor-border-soft: rgba(255, 255, 255, 0.085);
+    --editor-border-medium: rgba(255, 255, 255, 0.12);
+    --editor-border-accent: rgba(117, 144, 191, 0.42);
+
+    /* Text */
+    --editor-text-primary: rgba(236, 241, 250, 0.96);
+    --editor-text-secondary: rgba(223, 229, 239, 0.90);
+    --editor-text-muted: rgba(196, 205, 219, 0.76);
+
+    /* Brand / interactive */
+    --editor-brand-bg: rgba(94, 112, 140, 0.20);
+    --editor-brand-border: rgba(124, 146, 181, 0.34);
+    --editor-brand-hover: rgba(112, 133, 167, 0.20);
+    --editor-brand-selected: rgba(108, 129, 164, 0.30);
+
+    /* Status */
+    --editor-success-fg: rgb(73, 204, 91);
+    --editor-success-bg: rgba(73, 204, 91, 0.18);
+    --editor-success-border: rgba(73, 204, 91, 0.50);
+
+    --editor-danger-fg: rgb(220, 99, 99);
+    --editor-danger-bg: rgba(204, 74, 74, 0.18);
+    --editor-danger-border: rgba(204, 74, 74, 0.50);
+
+    /* Links (inspector / docs) */
+    --editor-link: rgb(120, 235, 255);
+
+    /* Transition animation editor (node accents — keep hue coding, centralize values) */
+    --editor-ta-sequential-bg: rgba(80, 180, 80, 0.18);
+    --editor-ta-sequential-border: rgba(80, 180, 80, 0.30);
+    --editor-ta-sequential-hover: rgba(80, 180, 80, 0.28);
+    --editor-ta-parallel-bg: rgba(70, 150, 220, 0.18);
+    --editor-ta-parallel-border: rgba(70, 150, 220, 0.30);
+    --editor-ta-parallel-hover: rgba(70, 150, 220, 0.28);
+    --editor-ta-subsequence-bg: rgba(220, 160, 60, 0.18);
+    --editor-ta-subsequence-border: rgba(220, 160, 60, 0.30);
+    --editor-ta-subsequence-hover: rgba(220, 160, 60, 0.28);
+    --editor-ta-empty-bg: rgba(128, 128, 128, 0.15);
+    --editor-ta-empty-border: rgba(128, 128, 128, 0.25);
+    --editor-ta-repeat-bg: rgba(180, 100, 220, 0.18);
+    --editor-ta-repeat-border: rgba(180, 100, 220, 0.30);
+    --editor-ta-repeat-hover: rgba(180, 100, 220, 0.28);
+    --editor-ta-overlay-bg: rgba(60, 200, 200, 0.18);
+    --editor-ta-overlay-border: rgba(60, 200, 200, 0.30);
+    --editor-ta-overlay-hover: rgba(60, 200, 200, 0.28);
+    --editor-ta-overlay-header: rgba(60, 200, 200, 0.85);
+    --editor-ta-accent-btn-bg: rgba(220, 160, 60, 0.20);
+    --editor-ta-accent-btn-border: rgba(220, 160, 60, 0.35);
+    --editor-ta-accent-btn-hover: rgba(220, 160, 60, 0.35);
+}
