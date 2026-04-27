@@ -8,7 +8,7 @@ using UnityEditor.PackageManager.Requests;
 
 namespace CupkekGames.Core.Editor
 {
-    internal static class CupkekGamesPackageInstaller
+    public static class CupkekGamesPackageInstaller
     {
         private const string LastErrorKey = "CupkekGames_PackageInstallLastError";
 

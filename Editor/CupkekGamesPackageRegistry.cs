@@ -1,7 +1,7 @@
 #if UNITY_EDITOR
 namespace CupkekGames.Core.Editor
 {
-    internal static class CupkekGamesPackageRegistry
+    public static class CupkekGamesPackageRegistry
     {
         public readonly struct Entry
         {
