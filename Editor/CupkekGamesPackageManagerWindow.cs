@@ -187,6 +187,20 @@ namespace CupkekGames.Core.Editor
             packageId.AddToClassList("pm-row-packageid");
             row.Add(packageId);
 
+            // Tag chips
+            if (entry.Tags != null && entry.Tags.Length > 0)
+            {
+                VisualElement tagContainer = new VisualElement();
+                tagContainer.AddToClassList("pm-row-tags");
+                for (int i = 0; i < entry.Tags.Length; i++)
+                {
+                    Label tag = new Label(entry.Tags[i]);
+                    tag.AddToClassList("pm-row-tag");
+                    tagContainer.Add(tag);
+                }
+                row.Add(tagContainer);
+            }
+
             // Spacer
             VisualElement spacer = new VisualElement();
             spacer.style.flexGrow = 1f;

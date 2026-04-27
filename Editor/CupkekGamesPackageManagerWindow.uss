@@ -145,6 +145,27 @@
 .pm-row-packageid {
     font-size: 11px;
     color: var(--editor-text-muted);
+    margin-right: 8px;
+}
+
+.pm-row-tags {
+    flex-direction: row;
+    align-items: center;
+}
+
+.pm-row-tag {
+    font-size: 10px;
+    -unity-font-style: bold;
+    color: var(--editor-text-secondary);
+    background-color: var(--editor-surface-weak);
+    border-color: var(--editor-border-soft);
+    border-width: 1px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    padding: 1px 7px;
+    margin-right: 4px;
 }
 
 .pm-row-version {
