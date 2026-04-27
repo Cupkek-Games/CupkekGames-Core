@@ -14,6 +14,11 @@ Shared foundation utilities used by all CupkekGames packages (LunaUI + the domai
 
 **Editor** (`CupkekGames.Core.Editor.asmdef`)
 - `EditorColorPalette`, `EditorImGuiDrawing`, `KeyValueDatabaseDrawer`, `MultiLineHeaderDrawer`, `SpritePreviewUtility`, `AssetFinder` editor UI
+- `CupkekGamesPackageRegistry` + `CupkekGamesPackageInstaller` + `CupkekGamesPackageManagerWindow` — `Tools > CupkekGames > Package Manager` window and registry of sibling Git URL packages
+
+## Adding a new sibling package
+
+See [Documentation/CREATING_A_PACKAGE.md](Documentation/CREATING_A_PACKAGE.md) for the end-to-end recipe (repo, package.json, asmdef, registry entry, samples).
 
 ## Dependency graph
 

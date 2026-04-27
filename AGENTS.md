@@ -32,14 +32,24 @@ com.cupkekgames.core/
     Singleton.cs
   Editor/                          ← CupkekGames.Core.Editor.asmdef
     AssetFinder/                   ← editor UI for AssetFinder
+    CupkekGamesPackageInstaller.cs ← Client.AddAndRemove wrapper
+    CupkekGamesPackageManagerWindow.cs / .uss ← Tools > CupkekGames > Package Manager
+    CupkekGamesPackageRegistry.cs  ← sibling Git-URL list + tags
     EditorColorPalette.cs
+    EditorColorPalette.uss         ← shared --editor-* tokens for every CupkekGames editor window
     EditorImGuiDrawing.cs
     EditorUI/
     KeyValueDatabaseDrawer.cs
     MultiLineHeaderDrawer.cs
     SpritePreviewUtility.cs
     UI/
+  Documentation/
+    CREATING_A_PACKAGE.md          ← recipe for new sibling packages
 ```
+
+## Adding a new sibling package
+
+See [Documentation/CREATING_A_PACKAGE.md](Documentation/CREATING_A_PACKAGE.md). Covers repo setup, `package.json`, asmdef GUIDs, registering in `CupkekGamesPackageRegistry.Entries`, samples (`Samples~/`), and extracting from a game project.
 
 ## Coding Conventions
 
