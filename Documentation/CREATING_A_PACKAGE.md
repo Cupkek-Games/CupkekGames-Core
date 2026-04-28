@@ -1,6 +1,14 @@
 # Creating a new CupkekGames package
 
-Reference for peeling a library out of a game project (or starting fresh) into a new sibling package under the `Cupkek-Games` GitHub org. Follow it end-to-end and the package shows up in the **Tools > CupkekGames > Package Manager** window with one-click install on consumer projects.
+Reference for peeling a library out of a game project (or starting fresh) into a new sibling package under the `Cupkek-Games` GitHub org. Follow it end-to-end and the package shows up in the **Tools > CupkekGames > Package Manager** window with one-click install on consumer projects, distributed via the CupkekGames UPM scoped registry at `https://www.docs.cupkek.games/upm`.
+
+## Distribution model
+
+Sibling packages are distributed via a **self-hosted UPM scoped registry**. Tarballs live in each repo's GitHub Releases, served by a dynamic Next.js route in [`luna-docs-next`](../../../../luna-docs-next) that synthesizes npm-compatible packument JSON on demand. The end-user UX is: a consumer adds the scoped registry to their `Packages/manifest.json` (the PM window does this automatically) and installs by package id; Unity surfaces version updates natively.
+
+The release pipeline is fully automated: tag a `v*.*.*`, a reusable workflow in [`Cupkek-Games/.github`](https://github.com/Cupkek-Games/.github) packs an npm-style tarball + sidecar JSON (with SHA-1/SHA-512 hashes), uploads them as Release assets, and the registry serves the new version within ~60 seconds.
+
+Luna is the exception — it ships via the Unity Asset Store, NOT this registry.
 
 ## 1. Create the GitHub repo
 
@@ -105,7 +113,7 @@ That GUID is `com.cupkekgames.core`'s Runtime asmdef. Reference any other Cupkek
 
 If a GUID drifts, look it up in the relevant `.asmdef.meta` file.
 
-## 5. Register in core
+## 5. Register in core (PM window listing)
 
 Add the new package to **`com.cupkekgames.core/Editor/CupkekGamesPackageRegistry.cs`** so it shows up in the Package Manager window:
 
@@ -113,13 +121,25 @@ Add the new package to **`com.cupkekgames.core/Editor/CupkekGamesPackageRegistry
 new Entry(
     "com.cupkekgames.<name>",
     "<DisplayName>",
-    "https://github.com/Cupkek-Games/CupkekGames-<Name>.git",
     PackageTags.GameFull),   // or your own tag — see PackageTags
 ```
 
 If the new package isn't part of GameFull, add a new tag constant in the `PackageTags` class (e.g. `public const string HeroManager = "HeroManager";`) and tag the entry with that. Bulk-install buttons filter by tag.
 
 Order matters: leaf deps (packages others depend on) listed before consumers, so Unity resolves cleanly during bulk install.
+
+## 5b. Register in the UPM packages map
+
+Add the new package to **`luna-docs-next/src/lib/upm-packages.ts`** so the registry route handler knows which GitHub repo to pull releases from:
+
+```ts
+export const UPM_PACKAGES: Record<string, UpmPackageEntry> = {
+  // ...existing entries...
+  "com.cupkekgames.<name>": { repo: "Cupkek-Games/CupkekGames-<Name>" },
+};
+```
+
+Commit + push to luna-docs-next; Amplify auto-deploys (~3 min). Once deployed, `https://www.docs.cupkek.games/upm/com.cupkekgames.<name>` returns the packument as soon as the repo has its first tagged release.
 
 ## 6. Documentation page (optional)
 
@@ -128,11 +148,43 @@ If users will reach for the package directly, add a page in `luna-docs-next`:
 - New file: `src/content/<name>.md` with frontmatter `title:` and an opening paragraph that names the package id (`com.cupkekgames.<name>`) and links to the [Package Manager window](/luna/architecture#package-manager-window).
 - Add a sidebar entry in `src/lib/docs-menu.ts`.
 
-## 7. Versioning + release
+## 7. Release workflow
 
-- Tag releases as `v<X.Y.Z>` (e.g. `v0.1.0`) on `main`.
-- Consumers can pin a release by appending `#vX.Y.Z` to the Git URL — but the registry currently leaves it on `HEAD of main`.
-- Bump `version` in `package.json` together with the tag.
+Each sibling repo needs a 5-line caller workflow at `.github/workflows/release.yml` that delegates to the org-level reusable workflow in `Cupkek-Games/.github`:
+
+```yaml
+name: Release
+on:
+  push:
+    tags: ['v*.*.*']
+
+jobs:
+  release:
+    uses: Cupkek-Games/.github/.github/workflows/upm-release.yml@main
+    permissions:
+      contents: write
+```
+
+The reusable workflow validates the tag matches `package.json > version`, packs an npm-style `.tgz` (everything under `package/` inside), computes SHA-1 + SHA-512 of the tarball bytes, and uploads `<name>-<ver>.tgz` + a `<name>-<ver>.json` sidecar (containing the hashes + the verbatim `package.json`) as GitHub Release assets. The registry route reads those at request time.
+
+To release:
+
+1. Bump `version` in `package.json` (semver).
+2. Commit + push.
+3. `git tag v<X.Y.Z> && git push origin v<X.Y.Z>`.
+4. Action runs (~30s). Tarball + sidecar land as Release assets.
+5. Registry serves the new version within the cache TTL (~5 min).
+6. Consumers see "Update to X.Y.Z" in Unity Package Manager UI.
+
+If a sibling has heavy `Samples~/` content that shouldn't ship in the install tarball, override the default in the caller workflow:
+
+```yaml
+jobs:
+  release:
+    uses: Cupkek-Games/.github/.github/workflows/upm-release.yml@main
+    with:
+      include-samples: false
+```
 
 ## Samples
 
@@ -162,8 +214,10 @@ If the new package starts as code inside a game project's `Assets/`:
 - [ ] (If editor code) Editor asmdef referencing core editor
 - [ ] README + AGENTS.md + Third-Party Notices
 - [ ] Registered in `CupkekGamesPackageRegistry.Entries` with appropriate tag
+- [ ] Added to `luna-docs-next/src/lib/upm-packages.ts` (registry mapping)
+- [ ] `.github/workflows/release.yml` caller present in the new repo
 - [ ] (If user-facing) Doc page in `luna-docs-next` + sidebar entry
-- [ ] Tagged `v0.1.0` and pushed
+- [ ] Tagged `v0.1.0` and pushed → Action ran green → registry serves the packument
 
 ## See also
 
