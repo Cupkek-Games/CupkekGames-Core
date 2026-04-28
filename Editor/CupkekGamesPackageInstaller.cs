@@ -78,12 +78,28 @@ namespace CupkekGames.Core.Editor
                 return;
             }
 
-            EnsureScopedRegistry();
+            bool registryAdded = EnsureScopedRegistry();
 
             LastError = string.Empty;
-            _addRequest = Client.Add(packageId);
             _addCallback = onCompleted;
-            EditorApplication.update += PumpAddRequest;
+
+            // If we just wrote a new scopedRegistries block to manifest.json,
+            // defer the Add by one editor tick so Unity processes the change
+            // before resolving the package. Otherwise UPM may not see the new
+            // registry yet and fail with "invalid dependencies".
+            if (registryAdded)
+            {
+                EditorApplication.delayCall += () =>
+                {
+                    _addRequest = Client.Add(packageId);
+                    EditorApplication.update += PumpAddRequest;
+                };
+            }
+            else
+            {
+                _addRequest = Client.Add(packageId);
+                EditorApplication.update += PumpAddRequest;
+            }
         }
 
         private static void PumpAddRequest()
@@ -120,12 +136,28 @@ namespace CupkekGames.Core.Editor
                 return;
             }
 
-            EnsureScopedRegistry();
+            bool registryAdded = EnsureScopedRegistry();
 
             LastError = string.Empty;
-            _addAndRemoveRequest = Client.AddAndRemove(packagesToAdd: toAdd, packagesToRemove: null);
             _addAndRemoveCallback = onCompleted;
-            EditorApplication.update += PumpAddAndRemoveRequest;
+
+            // If we just wrote a new scopedRegistries block to manifest.json,
+            // defer the AddAndRemove by one editor tick so Unity processes the
+            // change before resolving packages. Otherwise UPM may not see the
+            // new registry yet and fail with "invalid dependencies".
+            if (registryAdded)
+            {
+                EditorApplication.delayCall += () =>
+                {
+                    _addAndRemoveRequest = Client.AddAndRemove(packagesToAdd: toAdd, packagesToRemove: null);
+                    EditorApplication.update += PumpAddAndRemoveRequest;
+                };
+            }
+            else
+            {
+                _addAndRemoveRequest = Client.AddAndRemove(packagesToAdd: toAdd, packagesToRemove: null);
+                EditorApplication.update += PumpAddAndRemoveRequest;
+            }
         }
 
         private static void PumpAddAndRemoveRequest()
@@ -151,20 +183,26 @@ namespace CupkekGames.Core.Editor
         /// project's Packages/manifest.json. Idempotent. Safe to call before
         /// every Client.Add / Client.AddAndRemove.
         /// </summary>
+        /// <returns>
+        /// <c>true</c> if a new scopedRegistries entry was just written
+        /// (caller should defer the next package-manager API call by one
+        /// editor tick so Unity sees the change). <c>false</c> if the
+        /// registry was already present — caller can proceed immediately.
+        /// </returns>
         /// <remarks>
         /// String-based injection rather than full JSON parse: manifest.json is
         /// Unity-managed and predictable in shape (no comments, no trailing
         /// commas). This avoids adding a Newtonsoft.Json dep on a package whose
         /// pitch is "no external deps".
         /// </remarks>
-        public static void EnsureScopedRegistry()
+        public static bool EnsureScopedRegistry()
         {
             string manifestPath = Path.GetFullPath(
                 Path.Combine(Application.dataPath, "..", "Packages", "manifest.json"));
             if (!File.Exists(manifestPath))
             {
                 Debug.LogWarning($"[CupkekGames] Packages/manifest.json not found at {manifestPath}; skipping scoped-registry bootstrap.");
-                return;
+                return false;
             }
 
             string content = File.ReadAllText(manifestPath);
@@ -173,7 +211,7 @@ namespace CupkekGames.Core.Editor
             // user reformatting the JSON or having a different `name`.
             if (content.Contains($"\"{RegistryUrl}\""))
             {
-                return;
+                return false;
             }
 
             string newEntry =
@@ -195,7 +233,7 @@ namespace CupkekGames.Core.Editor
                 if (arrayStart < 0)
                 {
                     Debug.LogError("[CupkekGames] manifest.json has scopedRegistries key but no array — skipping.");
-                    return;
+                    return false;
                 }
 
                 // Determine if the array is empty (next non-ws char is `]`).
@@ -217,7 +255,7 @@ namespace CupkekGames.Core.Editor
                 if (rootBrace < 0)
                 {
                     Debug.LogError("[CupkekGames] manifest.json has no opening `{` — skipping.");
-                    return;
+                    return false;
                 }
 
                 string insertion =
@@ -229,10 +267,7 @@ namespace CupkekGames.Core.Editor
 
             File.WriteAllText(manifestPath, updated);
             Debug.Log($"[CupkekGames] Added scoped registry to {manifestPath}.");
-
-            // Force Unity to re-read manifest.json before the next Client.Add /
-            // Client.AddAndRemove call resolves dependencies.
-            Client.Resolve();
+            return true;
         }
     }
 }
